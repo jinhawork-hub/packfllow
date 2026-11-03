@@ -5,7 +5,17 @@ body{background:#fff;color:#222}header{height:64px;padding:0 32px;background:whi
 @media(max-width:1050px){main{grid-template-columns:minmax(0,1fr) 270px;gap:14px;padding:10px 15px}.toolbar{flex-wrap:wrap}.legend{gap:7px;font-size:9px}.stageLabel{top:12px;left:14px}}
 @media(max-width:760px){header{padding:0 16px}.brand{font-size:16px}main{display:flex;padding:10px;gap:14px}#threeArea{height:auto}.stage{aspect-ratio:16/9;min-height:0}#twoArea{height:210px}.stageLabel{font-size:10px}.stageLabel p{font-size:8px}.stageHint{display:none}aside{position:static;max-height:none;width:100%}.toolbar{gap:2px}#selectionStatus{font-size:8px!important}.panelHidden aside{display:none}}
 [hidden]{display:none!important}
-main #twoArea{height:460px}@media(min-width:1500px){main #twoArea{height:490px}}.workspace.only2 #twoArea, .only2 .workspace #twoArea{height:70vh}@media(max-width:760px){main #twoArea{height:420px}}/* Shared corner geometry across controls and panels. */:root{--ui-radius:12px}.area,aside,article,button,select,.segment,.segment button,.stageTools button,.stageLabel #selectionStatus,.workflowTabs button,.view button{border-radius:var(--ui-radius)!important}</style></head><body>
+main #twoArea{height:460px}@media(min-width:1500px){main #twoArea{height:490px}}.workspace.only2 #twoArea, .only2 .workspace #twoArea{height:70vh}@media(max-width:760px){main #twoArea{height:420px}}/* Consistent corner scale: containers, controls, and true pills. */
+:root{--radius-panel:16px;--radius-control:10px;--radius-pill:999px}
+.area,aside,article,dialog{border-radius:var(--radius-panel)!important}
+button,select,input:not([type=range]):not([type=checkbox]):not([type=color]),.upload,.apiLabel input,.dimensions input{border-radius:var(--radius-control)!important}
+.segment{border-radius:14px!important;padding:4px}
+.segment button{border-radius:var(--radius-control)!important}
+.workflowTabs button,.stageTools button,.view button{border-radius:var(--radius-control)!important}
+.stageLabel #selectionStatus,.badge{border-radius:var(--radius-pill)!important}
+.materials i{border-radius:50%!important}
+#threeArea .toolbar button,#twoArea .toolbar button{min-width:32px}
+</style></head><body>
 <header><a class="brand" href="#">PACKFLOW</a><div class="headerActions"><button id="panelToggle" title="설정 패널 접기">설정</button><button id="help">ⓘ 기능 안내</button><button id="cloudSave">클라우드 저장</button><button id="cloudLoad">클라우드 열기</button><button id="save">저장</button><button class="dark" id="exportTop">내보내기 ↗</button></div></header>
 <main><section class="workspace">
 <section id="threeArea" class="area"><div class="toolbar"><strong>3D 미리보기</strong><div class="segment"><button id="foldBtn" class="active">접기</button><button id="unfoldBtn">펼치기</button></div><div class="segment"><button id="faceBtn">면</button><button id="wireBtn">선</button><button id="renderBtn" class="active">면+선</button></div><select id="camera" aria-label="카메라 시점"><option>Perspective</option><option>Front</option><option>Back</option><option>Left</option><option>Right</option><optgroup id="savedOptions" label="저장한 뷰" hidden></optgroup></select><button id="removeView" title="선택한 저장 뷰 삭제" aria-label="선택한 저장 뷰 삭제" hidden>×</button><button id="saveView" title="사용자 지정 뷰 저장">＋ 뷰 저장</button><button id="expand3" title="3D 영역 확대">⛶</button></div>
