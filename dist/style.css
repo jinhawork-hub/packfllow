@@ -5,3 +5,10 @@ body{background:#fff;color:#222}header{height:64px;padding:0 32px;background:whi
 @media(max-width:1050px){main{grid-template-columns:minmax(0,1fr) 270px;gap:14px;padding:10px 15px}.toolbar{flex-wrap:wrap}.legend{gap:7px;font-size:9px}.stageLabel{top:12px;left:14px}}
 @media(max-width:760px){header{padding:0 16px}.brand{font-size:16px}main{display:flex;padding:10px;gap:14px}#threeArea{height:auto}.stage{aspect-ratio:16/9;min-height:0}#twoArea{height:210px}.stageLabel{font-size:10px}.stageLabel p{font-size:8px}.stageHint{display:none}aside{position:static;max-height:none;width:100%}.toolbar{gap:2px}#selectionStatus{font-size:8px!important}.panelHidden aside{display:none}}
 [hidden]{display:none!important}
+
+/* Larger dieline workspace, with the quiet monochrome configurator layout. */
+#twoArea{height:460px;min-height:360px}
+@media(min-width:1500px){#twoArea{height:490px}}
+@media(max-width:760px){#twoArea{height:420px;min-height:360px}}
+.cardTitle>span:not(#apiStatus){display:none}
+main{background:#fcfcfc}.workspace{min-width:0}aside{background:#efefef}article{box-shadow:0 1px 2px #00000003}
