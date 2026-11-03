@@ -19,7 +19,9 @@ PACKFLOW.html은 더블클릭해서 실행할 수 있습니다. 소스 버전은
 
 GPT 실연결은 아직 완료하지 않았습니다. 사용자 GPT의 지침·모델·서버 키가 제공되지 않았습니다. 로컬 검수 안내는 정적으로 작성한 실무 가이드이며 GPT의 자동 판정이 아닙니다.
 
-`server.py`에 서버 측 Responses API 연결 코드를 포함했습니다. 서버 환경에 OPENAI_API_KEY, PACKFLOW_REVIEW_MODEL, PACKFLOW_REVIEW_INSTRUCTIONS(검수 지침 파일 경로)를 설정한 뒤 서버를 실행하세요. 웹사이트의 완성 → GPT 검수 → 연결 설정에는 `http://localhost:8765/api/review`를 입력합니다. API 키는 웹페이지·프로젝트·채팅에 입력하지 않습니다.
+Vercel 배포에서는 `/api/review` 서버 함수가 OpenAI Responses API를 호출합니다. Vercel 프로젝트 환경변수에 `OPENAI_API_KEY`를 등록하고, 필요하면 `PACKFLOW_REVIEW_MODEL`을 설정하세요. 기본 모델은 `gpt-5-mini`입니다. API 키는 웹페이지·프로젝트·채팅에 입력하지 않습니다.
+
+로컬 `server.py`를 사용할 때는 `OPENAI_API_KEY`를 설정한 뒤 실행하세요. 모델과 검수 지침을 바꾸려면 `PACKFLOW_REVIEW_MODEL`, `PACKFLOW_REVIEW_INSTRUCTIONS`를 추가로 설정할 수 있습니다. 기본 지침은 `api/review-instructions.txt`입니다.
 
 OpenAI API 구현은 [공식 Responses API 가이드](https://developers.openai.com/api/docs/guides/migrate-to-responses)를 참고했습니다. 서버는 사용자 지침을 instructions에, 패키지 정보와 미리보기 이미지를 input에 전달합니다. 실제 모델 호출 및 응답 품질 검증은 연결 정보가 없어 수행하지 않았습니다.
 

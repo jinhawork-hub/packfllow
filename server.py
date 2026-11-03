@@ -11,8 +11,8 @@ class Handler(SimpleHTTPRequestHandler):
   if self.path!='/api/review':return self.send_json(404,{'error':'Not found'})
   if self.headers.get('Host') not in ['localhost:8765','127.0.0.1:8765']:return self.send_json(403,{'error':'Invalid host'})
   if self.headers.get('Origin') not in ['http://localhost:8765','http://127.0.0.1:8765']:return self.send_json(403,{'error':'Open the local PACKFLOW website to request review'})
-  key=os.environ.get('OPENAI_API_KEY');model=os.environ.get('PACKFLOW_REVIEW_MODEL');path=os.environ.get('PACKFLOW_REVIEW_INSTRUCTIONS')
-  if not key or not model or not path:return self.send_json(503,{'error':'Server requires OPENAI_API_KEY, PACKFLOW_REVIEW_MODEL and PACKFLOW_REVIEW_INSTRUCTIONS'})
+  key=os.environ.get('OPENAI_API_KEY');model=os.environ.get('PACKFLOW_REVIEW_MODEL','gpt-5-mini');path=os.environ.get('PACKFLOW_REVIEW_INSTRUCTIONS',str(ROOT/'api'/'review-instructions.txt'))
+  if not key:return self.send_json(503,{'error':'Server requires OPENAI_API_KEY'})
   try:
    n=int(self.headers.get('Content-Length','0'))
    if not 0<n<=8*1024*1024:return self.send_json(413,{'error':'Request too large'})
