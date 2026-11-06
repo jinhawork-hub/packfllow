@@ -89,7 +89,7 @@ body:has(#introHero:not([hidden])){overflow:hidden}
 #heroObject{width:61vw;height:73svh;left:53.5%}
 .heroFrame{animation:none}
 .heroFrame svg{animation:none}
-.heroClick{font-family:Arial,Helvetica,sans-serif;font-size:clamp(20px,2.1vw,56px);line-height:1;letter-spacing:normal;font-weight:400}
+.heroClick{font-family:Arial,Helvetica,sans-serif;font-size:clamp(17px,1.785vw,47.6px);line-height:1;letter-spacing:normal;font-weight:400}
 body>header{padding-inline:var(--page-gutter);gap:24px}
 body>main{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--layout-gap);padding:16px var(--page-gutter) 24px}
 body>main>.workspace{grid-column:span 9;min-width:0}
@@ -110,6 +110,20 @@ html body,body button,body input,body select,body textarea,body dialog,body svg 
   font:700 clamp(32px,2.65vw,72px)/1 Pretendard,sans-serif;
   letter-spacing:-.035em;
   color:#000;
+}
+/* Shared outer alignment and quieter editor controls. */
+#introHero .heroNav,#introTitle{left:var(--page-gutter)}
+body > header,body > main{padding-inline:var(--page-gutter)}
+body > main .area,body > main aside,body > main article,body > header{
+  border-color:#e9e9e9;
+}
+body > header .headerActions button:not(.dark),
+body > main button:not(.dark):not(.active):not([aria-selected="true"]){
+  border-color:#e4e4e4;
+}
+body > main .toolbar button:not(.dark):not(.active){border-color:transparent}
+body > main .workflowTabs button[aria-selected="true"]{
+  background:#171717;color:#fff;box-shadow:none;
 }
 </style></head><body>
 <section id="introHero" aria-labelledby="introTitle">
@@ -944,6 +958,7 @@ const reducedHeroMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const heroWorkspace = [document.querySelector('body > header'), document.querySelector('body > main')];
 let heroFrameIndex = 0;
 let heroTimer = null;
+let heroEntering = false;
 let heroPaused = false;
 
 function advanceHero(){
@@ -959,7 +974,7 @@ function updateHeroMotion(){
     heroPaused ? '전개도 자동 전환 재생' : '전개도 자동 전환 일시 정지';
   heroSymbol.setAttribute('aria-label', label);
   heroSymbol.title = label;
-  if(!heroIntro.hidden && !heroPaused && !reducedHeroMotion.matches){
+  if(!heroIntro.hidden && !heroPaused && !heroEntering && !reducedHeroMotion.matches){
     heroTimer = setInterval(advanceHero, 350);
   }
 }
@@ -971,21 +986,73 @@ function showHero(open){
   if(open) heroIntro.querySelector('button').focus({preventScroll:true});
 }
 
-async function enterFromHero(action){
-  if(action === 'about'){
-    $('heroAbout').showModal();
-    return;
-  }
+async function animateHeroReveal(entering, durationMs = 1000){
+  if(reducedHeroMotion.matches || !heroIntro.animate) return [];
+  const elements = [
+    [$('introTitle'), 0, 440, 32],
+    [heroObject, 80, 460, 48],
+    ...[...heroIntro.querySelectorAll('.heroNav span')].map(
+      (line, index) => [line, 140 + index*35, 380, 22]
+    ),
+    [heroSymbol, 240, 400, 20]
+  ];
+  const total = Math.max(...elements.map(([, delay, duration]) => delay + duration));
+  const timeScale = durationMs / total;
+  const animations = elements.map(([element, delay, duration, distance]) =>
+    element.animate([
+      {clipPath:'inset(100% 0 0 0)', transform:`translateY(${distance}px)`},
+      {clipPath:'inset(0 0 0 0)', transform:'translateY(0)'}
+    ], {
+      duration:duration*timeScale, delay:(entering ? delay : total-delay-duration)*timeScale,
+      easing:'cubic-bezier(.22,.8,.24,1)', direction:entering?'normal':'reverse',
+      fill:entering?'backwards':'both'
+    })
+  );
+  await Promise.allSettled(animations.map(animation=>animation.finished));
+  return animations;
+}
+
+const screenSwitchDelay = 900;
+const screenOverlap = 200;
+
+function fadeHero(entering){
+  if(reducedHeroMotion.matches || !heroIntro.animate) return null;
+  return heroIntro.animate(
+    [{opacity:entering ? 0 : 1}, {opacity:entering ? 1 : 0}],
+    {duration:screenOverlap, delay:entering ? 0 : screenSwitchDelay-screenOverlap,
+      easing:'ease-in-out', fill:entering ? 'none' : 'forwards'}
+  );
+}
+
+function revealReturningHero(){
+  fadeHero(true);
+  animateHeroReveal(true, screenSwitchDelay);
+}
+const waitForScreenSwitch = () => new Promise(resolve => setTimeout(resolve, screenSwitchDelay));
+
+async function enterFromHero(){
+  if(heroEntering || heroIntro.hidden) return;
+  heroEntering = true;
+  updateHeroMotion();
   const packageId = heroFrames[heroFrameIndex].dataset.package;
-  history.pushState({...history.state, packflowScreen:'editor'}, '');
-  showHero(false);
-  switchTab(action === 'customize' ? 'design' : action === 'check' ? 'finish' : 'structure');
   window.scrollTo(0,0);
-  $('package').focus({preventScroll:true});
-  if(action === 'open') await loadPackage(packageId);
-  if(action === 'preview') $('foldBtn').focus({preventScroll:true});
-  if(action === 'check') $('runReview').focus({preventScroll:true});
-  schedule();
+  switchTab('structure');
+  const fade = fadeHero(false);
+  try{
+    const [exitAnimations] = await Promise.all([
+      animateHeroReveal(false, screenSwitchDelay),
+      loadPackage(packageId),
+      waitForScreenSwitch()
+    ]);
+    history.pushState({...history.state, packflowScreen:'editor'}, '');
+    showHero(false);
+    exitAnimations.forEach(animation=>animation.cancel());
+    $('package').focus({preventScroll:true});
+  }finally{
+    fade?.cancel();
+    heroEntering = false;
+    updateHeroMotion();
+  }
 }
 
 for(const button of heroIntro.querySelectorAll('[data-hero-action]')){
@@ -1010,16 +1077,28 @@ heroSymbol.addEventListener('click', () => {
   }
 });
 reducedHeroMotion.addEventListener('change', updateHeroMotion);
+let returningToIntro = false;
 function returnToIntro(event){
   event.preventDefault();
-  if(history.state?.packflowScreen === 'editor') history.back();
-  else showHero(true);
+  if(returningToIntro || !heroIntro.hidden) return;
+  if(history.state?.packflowScreen === 'editor'){
+    returningToIntro = true;
+    history.back();
+  }else{
+    window.scrollTo(0,0);
+    showHero(true);
+    revealReturningHero();
+  }
 }
 
 document.querySelector('body > header .brand').addEventListener('click', returnToIntro);
 window.addEventListener('popstate', event => {
+  returningToIntro = false;
   const open = event.state?.packflowScreen !== 'editor';
+  if(open && !heroIntro.hidden) return;
+  if(open) window.scrollTo(0,0);
   showHero(open);
+  if(open) revealReturningHero();
   if(!open){
     document.querySelector('body > header .brand').focus({preventScroll:true});
     schedule();
@@ -1032,5 +1111,6 @@ if(history.state?.packflowScreen === 'editor'){
   history.replaceState({...history.state, packflowScreen:'intro'}, '');
   for(const element of heroWorkspace) element.inert = true;
   updateHeroMotion();
+  animateHeroReveal(true, 1100);
 }
 </script></body></html>
